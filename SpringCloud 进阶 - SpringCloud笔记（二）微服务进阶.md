@@ -1554,14 +1554,14 @@ public class BorrowServiceImpl implements BorrowService{
 
 Seata支持4种事务模式，官网文档：https://seata.io/zh-cn/docs/overview/what-is-seata.html
 
-* AT：本质上就是2PC的升级版，在 AT 模式下，用户只需关心自己的 “业务SQL”
+* AT（Automatic Transaction）：本质上就是2PC的升级版，在 AT 模式下，用户只需关心自己的 “业务SQL”
 
   1. 一阶段，Seata 会拦截“业务 SQL”，首先解析 SQL 语义，找到“业务 SQL”要更新的业务数据，在业务数据被更新前，将其保存成“before image”，然后执行“业务 SQL”更新业务数据，在业务数据更新之后，再将其保存成“after image”，最后生成行锁。以上操作全部在一个数据库事务内完成，这样保证了一阶段操作的原子性。
   2. 二阶段如果确认提交的话，因为“业务 SQL”在一阶段已经提交至数据库， 所以 Seata 框架只需将一阶段保存的快照数据和行锁删掉，完成数据清理即可，当然如果需要回滚，那么就用“before image”还原业务数据；但在还原前要首先要校验脏写，对比“数据库当前业务数据”和 “after image”，如果两份数据完全一致就说明没有脏写，可以还原业务数据，如果不一致就说明有脏写，出现脏写就需要转人工处理。
 
-* TCC：和我们上面讲解的思路是一样的。
+* TCC（Try/Confirm/Cancel）：和我们上面讲解的思路是一样的。
 
-* XA：同上，但是要求数据库本身支持这种模式才可以。
+* XA（eXtended Architecture）：同上，但是要求数据库本身支持这种模式才可以。
 
 * Saga：用于处理长事务，每个执行者需要实现事务的正向操作和补偿操作：
 
