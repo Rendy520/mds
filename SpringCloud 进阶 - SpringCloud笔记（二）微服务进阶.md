@@ -1548,7 +1548,7 @@ public class BorrowServiceImpl implements BorrowService{
 
 * RM（Resource Manager）：用于直接执行本地事务的提交和回滚。
 * TM（Transaction Manager）：TM是分布式事务的核心管理者。比如现在我们需要在借阅服务中开启全局事务，来让其自身、图书服务、用户服务都参与进来，也就是说一般全局事务发起者就是TM。
-* TC（Transaction Manager）这个就是我们的Seata服务器，用于全局控制，比如在XA模式下就是一个协调者的角色，而一个分布式事务的启动就是由TM向TC发起请求，TC再来与其他的RM进行协调操作。
+* TC（Transaction Coordinator）这个就是我们的Seata服务器，用于全局控制，比如在XA模式下就是一个协调者的角色，而一个分布式事务的启动就是由TM向TC发起请求，TC再来与其他的RM进行协调操作。
 
 > TM请求TC开启一个全局事务，TC会生成一个XID作为该全局事务的编号，XID会在微服务的调用链路中传播，保证将多个微服务的子事务关联在一起；RM请求TC将本地事务注册为全局事务的分支事务，通过全局事务的XID进行关联；TM请求TC告诉XID对应的全局事务是进行提交还是回滚；TC驱动RM将XID对应的自己的本地事务进行提交还是回滚；
 
