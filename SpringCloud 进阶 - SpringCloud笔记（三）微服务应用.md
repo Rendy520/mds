@@ -419,7 +419,29 @@ OK，成功刷新Token，返回了一个新的。
 
 ### 基于@EnableOAuth2Sso实现
 
-前面我们将验证服务器已经搭建完成了，现在我们就来实现一下单点登陆吧，SpringCloud为我们提供了客户端的直接实现，我们只需要添加一个注解和少量配置即可将我们的服务作为一个单点登陆应用，使用的是第四种授权码模式。
+前面我们将验证服务器已经搭建完成了，现在我们就来实现一下单点登陆（Single Sign-On，sso）吧，SpringCloud为我们提供了客户端的直接实现，我们只需要添加一个注解和少量配置即可将我们的服务作为一个单点登陆应用，使用的是第四种授权码模式。
+
+```mermaid
+sequenceDiagram
+  participant U as 用户
+  participant SP as 业务系统(SP)
+  participant IdP as Identity Provider (IdP)
+
+  U->>SP: 访问受保护资源
+  SP-->>U: 重定向到 IdP（携带请求/回调地址）
+  U->>IdP: 访问登录页
+  IdP-->>U: 返回登录表单
+  U->>IdP: 提交凭证
+  IdP->>IdP: 校验凭证/创建 Session
+  IdP-->>U: 重定向回 SP（Code）
+  U->>SP: 携带 Code 访问
+  SP->>IdP: 加上 secret 兑换 Token
+  IdP-->>SP: 返回 Token / 用户信息
+  SP-->>U: 建立本地 Session，放行资源
+
+```
+
+
 
 一句话来说就是，这种模式只是将验证方式由原本的默认登录形式改变为了统一在授权服务器登陆的形式。
 

@@ -1552,6 +1552,45 @@ public class BorrowServiceImpl implements BorrowService{
 
 > TM请求TC开启一个全局事务，TC会生成一个XID作为该全局事务的编号，XID会在微服务的调用链路中传播，保证将多个微服务的子事务关联在一起；RM请求TC将本地事务注册为全局事务的分支事务，通过全局事务的XID进行关联；TM请求TC告诉XID对应的全局事务是进行提交还是回滚；TC驱动RM将XID对应的自己的本地事务进行提交还是回滚；
 
+```mermaid
+sequenceDiagram
+    participant RMs as RMs(资源管理器)<br/>服务A、服务B...
+    participant TM as TM(事务管理器)
+    participant TC as TC(事务协调器)
+    
+    Note over RMs,TC: 阶段1: 开启全局事务
+    TM->>TC: 1. 请求开启全局事务
+    TC->>TM: 2. 返回全局事务XID
+    
+    Note over RMs,TC: 阶段2: 执行分支事务并注册
+    TM->>RMs: 3. 发起业务调用(携带XID)
+    RMs->>RMs: 4. 执行本地事务
+    RMs->>TC: 5. 注册分支事务(XID + 分支ID)
+    TC->>RMs: 6. 注册成功
+    RMs->>TM: 7. 返回执行结果
+    
+    Note over RMs,TC: 阶段3: 全局提交或回滚决策
+    alt 全局事务成功
+        TM->>TC: 8. 请求全局提交(XID)
+        TC->>TC: 9. 根据XID查找所有分支事务
+        TC->>RMs: 10. 通知各分支事务提交
+        RMs->>RMs: 11. 提交本地事务
+        RMs->>TC: 12. 分支提交完成
+        TC->>TM: 13. 全局事务提交完成
+    else 全局事务失败
+        TM->>TC: 8. 请求全局回滚(XID)
+        TC->>TC: 9. 根据XID查找所有分支事务
+        TC->>RMs: 10. 通知各分支事务回滚
+        RMs->>RMs: 11. 回滚本地事务
+        RMs->>TC: 12. 分支回滚完成
+        TC->>TM: 13. 全局事务回滚完成
+    end
+    
+    Note over RMs,TC: XID在整个调用链路中传播,关联所有分支事务
+```
+
+
+
 Seata支持4种事务模式，官网文档：https://seata.io/zh-cn/docs/overview/what-is-seata.html
 
 * AT（Automatic Transaction）：本质上就是2PC的升级版，在 AT 模式下，用户只需关心自己的 “业务SQL”
